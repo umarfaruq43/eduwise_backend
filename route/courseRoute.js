@@ -11,7 +11,8 @@ const {
   editContentInCourse,
   deleteCourse,
   addQuizToCourse,
-  submitQuizAnswers
+  submitQuizAnswers,
+  editMultipleContentsInCourse
 } = require("../controllers/courseController"); 
 
 const {
@@ -43,10 +44,10 @@ router
   )
   
   .patch(
-    "/edit-content/:id/:contentId",
+    "/edit-content/:id",
     authenticateUser,
     authorizePermissions("admin"),
-    editContentInCourse
+    editMultipleContentsInCourse
   )
   .delete(
     "/delete-course/:id",

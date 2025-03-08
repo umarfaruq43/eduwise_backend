@@ -4,6 +4,25 @@ const Job = require("../models/JobModel");
 const cloudinary = require("cloudinary").v2;
 const fs = require("fs");
 
+const getUserCount = async (req, res) => {
+  try {
+    const userCount = await User.countDocuments({ role: "user" });
+
+    res.status(200).json({
+      status: "success",
+      message: "User count retrieved successfully",
+      count: userCount,
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({
+      status: "error",
+      message: "Failed to retrieve user count",
+      error,
+    });
+  }
+};
+
 const getUserDetails = async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).populate(
@@ -510,6 +529,7 @@ const markLessonWatched = async (req, res) => {
 
 
 module.exports = {
+  getUserCount,
   enrollUser,
   getUserDetails,
   getUserEnrolledCourses,

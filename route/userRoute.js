@@ -10,6 +10,7 @@ const {
 } = require("../controllers/authController");
 
 const {
+  getUserCount,
   enrollUser,
   getUserDetails,
 
@@ -35,6 +36,7 @@ router
   .get("/suggest-jobs", authenticateUser, suggestJobsBasedOnCourses)
   .get("/suggest-job/interest", authenticateUser, suggestJobsBasedOnInterests)
   .get("/get-enrolled-courses", authenticateUser, getUserEnrolledCourses)
+  .get("/total-students", authenticateUser, getUserCount)
   .patch(
     "/courses/:courseId/sections/:sectionTitle/lessons/:lessonTitle/watched",
     authenticateUser,

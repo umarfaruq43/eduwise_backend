@@ -924,3 +924,13 @@ payload: {
 result = {
     "message": "Password changed successfully."
 }
+
+24 Get all user count 
+
+Get http: //localhost:3000/api/total-students
+
+result: {
+    "status": "success",
+    "message": "User count retrieved successfully",
+    "count": userCount,
+}

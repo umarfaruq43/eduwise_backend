@@ -13,7 +13,6 @@ const getSingleCourse = async (req, res) => {
 
     res.status(200).json({ status: "success", course})
   } catch (error) {
-      console.log(error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
@@ -28,7 +27,6 @@ const getAllCourses = async (req, res) => {
 
     res.status(200).json({ status: "success", allCourses });
   } catch (error) {
-    console.log(error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -36,7 +34,6 @@ const getAllCourses = async (req, res) => {
 const getSuggestedCoursesForUser = async (req, res) => {
   try {
     const interests = req.user.interests; 
-    console.log(interests);
 
     if (!interests || interests.length === 0) {
       return res
@@ -50,7 +47,6 @@ const getSuggestedCoursesForUser = async (req, res) => {
 
     res.status(200).json({ status: "success", suggestedCourses });
   } catch (error) {
-    console.log(error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -67,7 +63,6 @@ const createCourse = async (req, res) => {
       course: newCourse,
     });
   } catch (error) {
-    console.log(error.message);
 
     const errorMessage = extractValidationErrors(error);
 
@@ -191,7 +186,6 @@ const editContentInCourse = async (req, res) => {
       course,
     });
   } catch (error) {
-    console.log(error.message);
     res
       .status(400)
       .json({ status: "error", message: "Failed to update content", error });
@@ -240,7 +234,6 @@ const deleteCourse = async (req, res) => {
       message: "Course deleted successfully",
     });
   } catch (error) {
-    console.log(error.message);
     res
       .status(500)
       .json({ status: "error", message: "Failed to delete course", error });

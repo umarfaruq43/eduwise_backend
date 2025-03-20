@@ -12,6 +12,9 @@ const {
   deleteCourse,
   addQuizToCourse,
   submitQuizAnswers,
+  editQuiz, 
+  deleteQuiz,
+  publishQuiz,
   editMultipleContentsInCourse
 } = require("../controllers/courseController"); 
 
@@ -56,6 +59,9 @@ router
     deleteCourse
   )
   .post("/courses/:courseId/quizzes", addQuizToCourse)
-  .post("/courses/:courseId/quizzes/:quizId/submit", submitQuizAnswers);
+  .post("/courses/:courseId/quizzes/:quizId/submit", submitQuizAnswers)
+  .put("/:courseId/quizzes/:quizId", editQuiz)    
+  .delete("/:courseId/quizzes/:quizId", deleteQuiz) 
+  .patch("/:courseId/quizzes/:quizId/publish", publishQuiz);
 
 module.exports = router;

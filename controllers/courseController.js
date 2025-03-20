@@ -286,17 +286,19 @@ const submitQuizAnswers = async (req, res) => {
     const { courseId, quizId } = req.params;
     const { answers } = req.body;
 
-
     const course = await Course.findById(courseId);
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    const quiz = course.quizzes.id(quizId.toString());
+    const quiz = course.quizzes.id(quizId);
     if (!quiz) {
       return res.status(404).json({ message: "Quiz not found" });
     }
 
+    if (!quiz.published) {
+      return res.status(400).json({ message: "Quiz is not published yet" });
+    }
 
     if (answers.length !== quiz.questions.length) {
       return res.status(400).json({
@@ -307,10 +309,7 @@ const submitQuizAnswers = async (req, res) => {
     let score = 0;
     quiz.questions.forEach((question, index) => {
       const selectedOption = answers[index];
-      if (!selectedOption) {
-        console.warn(`No answer provided for question at index ${index}`);
-        return; 
-      }
+      if (!selectedOption) return;
 
       const correctOption = question.options.find((opt) => opt.isCorrect);
       if (correctOption && correctOption.optionText === selectedOption) {
@@ -318,8 +317,14 @@ const submitQuizAnswers = async (req, res) => {
       }
     });
 
- 
     const percentage = Math.ceil((score / quiz.questions.length) * 100);
+
+    // Compare with existing totalScore and update only if new score is higher
+    if (!quiz.totalScore || percentage > quiz.totalScore) {
+      quiz.totalScore = percentage;
+    }
+
+    await course.save();
 
     res.status(200).json({
       status: "success",
@@ -327,12 +332,106 @@ const submitQuizAnswers = async (req, res) => {
       score: percentage,
     });
   } catch (error) {
-  
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
 
+const editQuiz = async (req, res) => {
+  try {
+    const { courseId, quizId } = req.params;
+    const { questions } = req.body;
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    const quiz = course.quizzes.id(quizId);
+    if (!quiz) {
+      return res.status(404).json({ message: "Quiz not found" });
+    }
+
+    if (quiz.published) {
+      return res.status(403).json({ message: "Quiz cannot be edited after publishing" });
+    }
+
+    quiz.questions = questions;
+    await course.save();
+
+    res.status(200).json({
+      status: "success",
+      message: "Quiz updated successfully",
+      updatedQuiz: quiz,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+
+const deleteQuiz = async (req, res) => {
+  try {
+    const { courseId, quizId } = req.params;
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    const quizIndex = course.quizzes.findIndex((quiz) => quiz._id.toString() === quizId);
+    if (quizIndex === -1) {
+      return res.status(404).json({ message: "Quiz not found" });
+    }
+
+    if (course.quizzes[quizIndex].published) {
+      return res.status(403).json({ message: "Quiz cannot be deleted after publishing" });
+    }
+
+    course.quizzes.splice(quizIndex, 1);
+    await course.save();
+
+    res.status(200).json({
+      status: "success",
+      message: "Quiz deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+const publishQuiz = async (req, res) => {
+  try {
+    const { courseId, quizId } = req.params;
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    const quiz = course.quizzes.id(quizId);
+    if (!quiz) {
+      return res.status(404).json({ message: "Quiz not found" });
+    }
+
+    if (quiz.published) {
+      return res.status(400).json({ message: "Quiz is already published" });
+    }
+
+    quiz.published = true;
+    await course.save();
+
+    res.status(200).json({
+      status: "success",
+      message: "Quiz has been published successfully",
+      quiz,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 
 
@@ -344,9 +443,12 @@ module.exports = {
   createCourse,
   editCourse,
   addContentToCourse,
+  editMultipleContentsInCourse,
   editContentInCourse,
   deleteCourse,
   addQuizToCourse,
   submitQuizAnswers,
-  editMultipleContentsInCourse,
+  editQuiz, 
+  deleteQuiz,
+  publishQuiz,
 };

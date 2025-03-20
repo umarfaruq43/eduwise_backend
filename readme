@@ -15,6 +15,9 @@ PATCH: http: //localhost:3000/api/edit-content/:id/:contentId
 DELETE: http: //localhost:3000/api/delete-course/:id
 POST: http: //localhost:3000/api/courses/:courseId/quizzes
 POST: http: //localhost:3000/api/courses/:courseId/quizzes/:quizId/submit
+PATCH http: //localhost:3000/api/courses/:courseId/quizzes/:quizId/publish
+PUT http: //localhost:3000/api/courses/:courseId/quizzes/:quizId
+DELETE http: //localhost:3000/api/courses/:courseId/quizzes/:quizId
 PATCH: http: //localhost:3000/api/update/user
 PATCH: http: //localhost:3000/api/courses/:courseId/sections/:sectionTitle/lessons/:lessonTitle/watched",
 GET:  http: //localhost:3000/api/courses/:courseId/progress
@@ -601,7 +604,81 @@ result: {
     "score": 50
 }
 
-16. How to update user info
+16 To delete a quiz
+DELETE: http: //localhost:3000/api/:courseId/quizzes/:quizId
+
+Response
+
+Success (200 OK)
+{
+    "status": "success",
+    "message": "Quiz deleted successfully"
+}
+Error (404 Not Found)
+{
+    "message": "Course not found" // or "Quiz not found"
+}   
+
+17 To edit a quiz
+PUT: http: //localhost:3000/api/:courseId/quizzes/:quizId
+
+payload: {
+    "questions": [
+      {
+        "questionText": "What is 2 + 2?",
+        "options": [
+          { "optionText": "3", "isCorrect": false },
+          { "optionText": "4", "isCorrect": true }
+        ]
+      },
+      {
+        "questionText": "What is the capital of France?",
+        "options": [
+          { "optionText": "Berlin", "isCorrect": false },
+          { "optionText": "Paris", "isCorrect": true }
+        ]
+      }
+    ]
+  }
+
+  Response
+
+  Success (200 OK)
+  {
+    "status": "success",
+    "message": "Quiz updated successfully",
+    "updatedQuiz": { /* updated quiz data */ }
+  }
+
+  Error (404 Not Found)
+  {
+    "message": "Course not found" // or "Quiz not found"
+  }
+
+
+18 To publish a quiz
+PATCH: http: //localhost:3000/api/:courseId/quizzes/:quizId/publish
+
+Response
+
+Success (200 OK)
+{
+  "status": "success",
+  "message": "Quiz has been published successfully",
+  "quiz": { /* quiz that is published */ }
+}
+
+Error (404 Not Found)
+{
+  "message": "Course not found" // or "Quiz not found"
+}
+
+Error (400 Bad Request)
+{
+  "message": "Quiz is already published"
+}
+
+19. How to update user info
     PATCH: http: //localhost:3000/api/update/user
     multipart/form-data
 
@@ -627,7 +704,7 @@ result: {
     }
 }
 
-17. How to watch a lesson and update progress
+20. How to watch a lesson and update progress
 
 PATCH: http: //localhost:3000/api/courses/:courseId/sections/:sectionTitle/lessons/:lessonTitle/watched",
 example http: //localhost:3000/api/courses/677c2a5bb75fd0225ac54004/sections/Introduction to ML/lessons/Applications of ML/watched
@@ -645,7 +722,7 @@ result: {
     "courseStatus": "active" //active means u havent completed the course, if status is completed then u have completed the course
 }
 
-18. How to get user progess on a course
+21. How to get user progess on a course
     GET: http: //localhost:3000/api/courses/:courseId/progress
 
 result: {
@@ -675,7 +752,7 @@ result: {
     "completedLessonsInCourse": 2
 }
 
-19. How to get single course
+22. How to get single course
 GET: http: //localhost:3000/api/courses/:courseId
 
 result: {
@@ -759,7 +836,7 @@ result: {
 }
 
 
-20. How to forget password
+23. How to forget password
 
 POST:  http: //localhost:3000/api/forgot-password
 
@@ -773,7 +850,7 @@ result: {
     "message": "Password reset link sent to your email"
 }
 
-21. how to reset password
+24. how to reset password
 
 PATCH: http: //localhost:3000/api/reset-password/:token
 
@@ -787,7 +864,7 @@ result: {
 }
 
 
-22. How to get jobs based on user interests
+25. How to get jobs based on user interests
 
 Get http: //localhost:3000/api/suggest-job/interest
 
@@ -912,7 +989,7 @@ result: {
 }
 
 
-23 How to chnage password
+26 How to chnage password
 
 http: //localhost:3000/api/change-password
 
@@ -925,7 +1002,7 @@ result = {
     "message": "Password changed successfully."
 }
 
-24 Get all user count 
+27 Get all user count 
 
 Get http: //localhost:3000/api/total-students
 

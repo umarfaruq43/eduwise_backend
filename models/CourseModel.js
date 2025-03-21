@@ -64,6 +64,7 @@ const CourseSchema = new mongoose.Schema(
         ],
         totalScore: { type: Number, default: 0, min: 0, max: 100 },
         published: { type: Boolean, default: false },
+        attempts: { type: Number, default: 0 },
       },
     ],
   },

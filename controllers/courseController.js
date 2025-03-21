@@ -323,6 +323,7 @@ const submitQuizAnswers = async (req, res) => {
     if (!quiz.totalScore || percentage > quiz.totalScore) {
       quiz.totalScore = percentage;
     }
+    quiz.attempts = quiz.totalScore + 1;
 
     await course.save();
 

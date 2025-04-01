@@ -32,32 +32,32 @@ router
   .post(
     "/create-course",
     authenticateUser,
-    authorizePermissions("admin"),
+    authorizePermissions("lecturer"),
     createCourse
   )
   .patch(
     "/edit-course/:id",
     authenticateUser,
-    authorizePermissions("admin"),
+    authorizePermissions("lecturer"),
     editCourse
   )
   .post(
     "/add-content/:id",
     authenticateUser,
-    authorizePermissions("admin"),
+    authorizePermissions("lecturer"),
     addContentToCourse
   )
   
   .patch(
     "/edit-content/:id",
     authenticateUser,
-    authorizePermissions("admin"),
+    authorizePermissions("lecturer"),
     editMultipleContentsInCourse
   )
   .delete(
     "/delete-course/:id",
     authenticateUser,
-    authorizePermissions("admin"),
+    authorizePermissions("lecturer"),
     deleteCourse
   )
   .post("/courses/:courseId/quizzes", addQuizToCourse)

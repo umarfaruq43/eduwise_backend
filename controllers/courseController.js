@@ -83,7 +83,20 @@ const getSuggestedCoursesForUser = async (req, res) => {
 
 const createCourse = async (req, res) => {
   try {
-    const newCourse = new Course(req.body);
+    // Ensure only lecturers can create courses
+    if (req.user.role !== "lecturer") {
+      return res.status(403).json({
+        status: "error",
+        message: "Only lecturers can create courses",
+      });
+    }
+
+    // Create new course and assign lecturerId automatically
+    const newCourse = new Course({
+      ...req.body,
+      lecturerId: req.user.userId,
+    });
+
     await newCourse.save();
 
     res.status(201).json({
@@ -92,7 +105,6 @@ const createCourse = async (req, res) => {
       course: newCourse,
     });
   } catch (error) {
-
     const errorMessage = extractValidationErrors(error);
 
     res.status(400).json({
@@ -102,6 +114,7 @@ const createCourse = async (req, res) => {
     });
   }
 };
+
 
 const editCourse = async (req, res) => {
   try {

@@ -24,6 +24,24 @@ const getUserCount = async (req, res) => {
   }
 };
 
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find(); // Fetch all users
+
+    res.status(200).json({
+      status: "success",
+      totalUsers: users.length,
+      users,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "Failed to retrieve users",
+      error: error.message,
+    });
+  }
+};
+
 const getUserDetails = async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).populate(
@@ -562,24 +580,24 @@ const createAdmin = async (req, res) => {
   }
 };
 
-const toggleAdminStatus = async (req, res) => {
+const toggleUserStatus = async (req, res) => {
   try {
-    const adminId = req.params.id;
-    
-    // Find admin by ID
-    const admin = await User.findById(adminId);
-    if (!admin || admin.role !== "admin") {
-      return res.status(404).json({ status: "error", message: "Admin not found" });
+    const userId = req.params.id;
+
+    // Find user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ status: "error", message: "User not found" });
     }
 
-    // Toggle the admin's status
-    admin.isActive = !admin.isActive;
-    await admin.save();
+    // Toggle the user's status
+    user.isActive = !user.isActive;
+    await user.save();
 
     res.status(200).json({
       status: "success",
-      message: `Admin ${admin.isActive ? "enabled" : "disabled"} successfully`,
-      admin,
+      message: `User ${user.isActive ? "enabled" : "disabled"} successfully`,
+      user,
     });
   } catch (error) {
     console.error(error.message);
@@ -598,5 +616,6 @@ module.exports = {
   updateUserDetails,
   suggestJobsBasedOnInterests,
   createAdmin,
-  toggleAdminStatus,
+  toggleUserStatus,
+  getAllUsers
 };

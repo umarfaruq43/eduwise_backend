@@ -1035,19 +1035,19 @@ result: {
 }
   
 
-2. PATCH /api/admin/toggle-admin/:id 
+2. PATCH /api/users/:id/toggle-status 
 note: id is the admin id to enable or disable
 
 result: {
     "status": "success",
-    "message": "Admin disabled successfully", // Admin enabled successfully
-    "admin": {
+    "message": "User disabled successfully", // User enabled successfully
+    "user": {
         "fullName": "okiki",
         "email": "emailkd@rfrrrfet4.cf",
         "interests": [
             "Machine Learning"
         ],
-        "role": "admin",
+        "role": "admin", // any role of user that is toggled
         "isActive": false,
     }
 }
@@ -1058,4 +1058,12 @@ result: {
     "status": "success",
     "message": "Courses retrieved successfully",
     courses, //all of all courses similar with all-course api result
+}
+
+4. GET /api/users
+
+result: {
+      status: "success",
+      totalUsers: 10, // Number all users fetched
+      users: users list,
 }

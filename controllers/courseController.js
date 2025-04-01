@@ -94,7 +94,7 @@ const createCourse = async (req, res) => {
     // Create new course and assign lecturerId automatically
     const newCourse = new Course({
       ...req.body,
-      lecturerId: req.user.userId,
+      lecturer: req.user.userId,
     });
 
     await newCourse.save();

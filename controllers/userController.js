@@ -1,6 +1,7 @@
 const User = require("../models/UserModel");
 const Course = require("../models/CourseModel");
 const Job = require("../models/JobModel");
+const bcrypt = require("bcryptjs");
 const cloudinary = require("cloudinary").v2;
 const fs = require("fs");
 
@@ -527,6 +528,64 @@ const markLessonWatched = async (req, res) => {
 };
 
 
+/// Super Admin
+
+const createAdmin = async (req, res) => {
+  try {
+    const { name, email } = req.body;
+
+    // Check if admin already exists
+    const existingAdmin = await User.findOne({ email });
+    if (existingAdmin) {
+      return res.status(400).json({ status: "error", message: "Admin already exists" });
+    }
+
+    // Create new admin
+    const hashedPassword = await bcrypt.hash("12345678", 10); // Default password
+    const newAdmin = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role: "admin",
+    });
+
+    await newAdmin.save();
+
+    res.status(201).json({ 
+      status: "success", 
+      message: "Admin created successfully", 
+      admin: newAdmin 
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+};
+
+const toggleAdminStatus = async (req, res) => {
+  try {
+    const adminId = req.params.id;
+    
+    // Find admin by ID
+    const admin = await User.findById(adminId);
+    if (!admin || admin.role !== "admin") {
+      return res.status(404).json({ status: "error", message: "Admin not found" });
+    }
+
+    // Toggle the admin's status
+    admin.isActive = !admin.isActive;
+    await admin.save();
+
+    res.status(200).json({
+      status: "success",
+      message: `Admin ${admin.isActive ? "enabled" : "disabled"} successfully`,
+      admin,
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+};
 
 module.exports = {
   getUserCount,
@@ -538,4 +597,6 @@ module.exports = {
   markLessonWatched,
   updateUserDetails,
   suggestJobsBasedOnInterests,
+  createAdmin,
+  toggleAdminStatus,
 };

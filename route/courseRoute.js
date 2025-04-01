@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   getSingleCourse,
   getAllCourses,
+  getLecturerCourses,
   getSuggestedCoursesForUser,
   createCourse,
   editCourse,
@@ -27,6 +28,7 @@ router
   .get("/all-courses", getAllCourses)
   .get("/courses/:courseId", getSingleCourse)
   .get("/suggested-courses", authenticateUser, getSuggestedCoursesForUser)
+  .get("/lecturer/courses", authenticateUser, getLecturerCourses)
   .post(
     "/create-course",
     authenticateUser,

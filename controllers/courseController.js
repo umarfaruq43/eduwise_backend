@@ -31,6 +31,35 @@ const getAllCourses = async (req, res) => {
   }
 };
 
+///Lecturer
+const getLecturerCourses = async (req, res) => {
+  try {
+    // Ensure the authenticated user is a lecturer
+    if (!req.user || req.user.role !== "lecturer") {
+      return res.status(403).json({
+        status: "error",
+        message: "Access denied. Only lecturers can view their courses.",
+      });
+    }
+
+    const lecturerId = req.user.userId; // Get lecturer's ID from authenticated user
+    const courses = await Course.find({ lecturer: lecturerId });
+
+    res.status(200).json({
+      status: "success",
+      message: "Courses retrieved successfully",
+      courses,
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({
+      status: "error",
+      message: "Failed to retrieve courses",
+      error,
+    });
+  }
+};
+
 const getSuggestedCoursesForUser = async (req, res) => {
   try {
     const interests = req.user.interests; 
@@ -452,4 +481,5 @@ module.exports = {
   editQuiz, 
   deleteQuiz,
   publishQuiz,
+  getLecturerCourses,
 };

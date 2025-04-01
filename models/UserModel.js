@@ -13,10 +13,14 @@ const UserSchema = new mongoose.Schema(
       validate: [isEmail, "Please provide a valid email"],
       unique: true,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
     password: {
       type: String,
       required: [true, "Password is required"],
-      minlength: [9, "Password must be more than 8 characters"],
+      minlength: [8, "Password must be more than 7 characters"],
       validate: [
         {
           validator: function (value) {
@@ -40,7 +44,7 @@ const UserSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: {
-        values: ["admin", "user"],
+        values: ["admin", "user", "lecturer", "super_admin"],
         message: "{VALUE} is not a valid role.",
       },
       default: "user",

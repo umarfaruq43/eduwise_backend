@@ -140,7 +140,6 @@ payload: {
     "title": "string",
     "duration": 10,
     "enrolledStudents": 45,
-    "teacher": "string",
     "targetAudience": [
         "Machine Learning",
         "AI in Gaming"
@@ -154,7 +153,7 @@ result: {
     "course": {
         "title": "string",
         "duration": 10,
-        "teacher": "string",
+        "lecturer": {}, // lecturer object(the login user which is now the lecturer)
         "enrolledStudents": 45, //this increments when user enroll in course
         "description": "string",
         "objectives": "string",
@@ -184,7 +183,6 @@ result: {
     "title": "string edited",
     "duration": 10,
     "enrolledStudents": 45,
-    "teacher": "string",
     "targetAudience": [
         "Machine Learning",
         "AI in Gaming"
@@ -198,7 +196,7 @@ result = {
 "\_id": "6777a4827e49b646cf8f78f2",
         "title": "string edited",
         "duration": 10,
-        "teacher": "string",
+        "lecturer": {}, // lecturer object(the login user which is now the lecturer)
         "enrolledStudents": 45,
         "description": "string edited",
         "objectives": "string edited",
@@ -285,7 +283,7 @@ result: {
         "id": "677c2a5bb75fd0225ac54004",
         "title": "Machine Learning for Beginners",
         "duration": 40,
-        "teacher": "Dr. John Doe",
+        "lecturer": {}, // lecturer object(the login user which is now the lecturer)
         "enrolledStudents": 50,
         "description": "An introductory course to Machine Learning",
         "objectives": "Learn the basics of ML, regression, classification, etc.",
@@ -395,7 +393,7 @@ result = {
 "\_id": "6777a4827e49b646cf8f78f2",
         "title": "string edited",
         "duration": 10,
-        "teacher": "string",
+        "lecturer": {}, // lecturer object(the login user which is now the lecturer)
         "enrolledStudents": 45,
         "description": "string edited",
         "objectives": "string edited",
@@ -486,7 +484,7 @@ result: {
         "id": "6777a4827e49b646cf8f78f2",
         "title": "string edited",
         "duration": 10,
-        "teacher": "string",
+        "lecturer": {}, // lecturer object(the login user which is now the lecturer)
         "enrolledStudents": 45,
         "description": "string edited",
         "objectives": "string edited",
@@ -761,7 +759,7 @@ result: {
         "_id": "677c2a5bb75fd0225ac54004",
         "title": "Machine Learning for Beginners",
         "duration": 40,
-        "teacher": "Dr. John Doe",
+        "lecturer": {}, // lecturer object(the login user which is now the lecturer)
         "enrolledStudents": 50,
         "description": "An introductory course to Machine Learning",
         "objectives": "Learn the basics of ML, regression, classification, etc.",
@@ -980,7 +978,7 @@ result: {
                 "Leadership"
             ],
             "link": "https://www.indeed.com/jobs?q=Ai+Gaming&l=Kentucky&from=sug&vjk=a9cb87faee723592",
-            "category": "AI in Gaming",
+            "ca gory": "AI in Gaming",
             "__v": 0,
             "createdAt": "2025-01-03T08:18:46.916Z",
             "updatedAt": "2025-01-03T08:18:46.916Z"
@@ -1010,4 +1008,54 @@ result: {
     "status": "success",
     "message": "User count retrieved successfully",
     "count": userCount,
+}
+
+
+///////////// New APIS
+
+1. POST /api/admin/create-admin
+
+payload: {
+    "name": "New Admin",
+    "email": "admin@example.com"
+}
+
+result: {
+    "status": "success",
+    "message": "Admin created successfully",
+    "admin": {
+        "fullName": "okiki",
+        "email": "emailkd@rfrrrfet4.cf",
+        "interests": [
+            "Machine Learning"
+        ],
+        "role": "admin",
+        "isActive": true,
+    }
+}
+  
+
+2. PATCH /api/admin/toggle-admin/:id 
+note: id is the admin id to enable or disable
+
+result: {
+    "status": "success",
+    "message": "Admin disabled successfully", // Admin enabled successfully
+    "admin": {
+        "fullName": "okiki",
+        "email": "emailkd@rfrrrfet4.cf",
+        "interests": [
+            "Machine Learning"
+        ],
+        "role": "admin",
+        "isActive": false,
+    }
+}
+
+3.  GET /api/lecturer/courses 
+
+result: {
+    "status": "success",
+    "message": "Courses retrieved successfully",
+    courses, //all of all courses similar with all-course api result
 }

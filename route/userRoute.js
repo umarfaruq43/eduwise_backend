@@ -20,9 +20,11 @@ const {
   getUserCourseProgress,
   updateUserDetails,
   suggestJobsBasedOnInterests,
+  createAdmin,
+  toggleAdminStatus
 } = require("../controllers/userController");
 
-const { authenticateUser } = require("../middleware/authentication");
+const { authenticateUser, authorizePermissions } = require("../middleware/authentication");
 
 router
   .post("/register", register)
@@ -42,6 +44,8 @@ router
     authenticateUser,
     markLessonWatched
   )
-  .get("/courses/:courseId/progress", authenticateUser, getUserCourseProgress);
+  .get("/courses/:courseId/progress", authenticateUser, getUserCourseProgress)
+  .post("/create-admin", authorizePermissions("super_admin"), createAdmin)
+  .patch("/toggle-admin/:id", authorizePermissions("super_admin"), toggleAdminStatus);
 
 module.exports = router;

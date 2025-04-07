@@ -79,6 +79,7 @@ const UserSchema = new mongoose.Schema(
               {
                 lessonTitle: String,
                 watched: { type: Boolean, default: false },
+                watchedAt: { type: Date },
               },
             ],
           },

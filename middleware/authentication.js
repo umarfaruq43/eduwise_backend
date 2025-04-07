@@ -30,6 +30,7 @@ const authenticateUser = async (req, res, next) => {
 };
 
 const authorizePermissions = (...roles) => {
+  console.log(roles)
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
       return sendErrorResponse(res, "Unauthorized access", 403);

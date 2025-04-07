@@ -16,7 +16,8 @@ const {
   editQuiz, 
   deleteQuiz,
   publishQuiz,
-  editMultipleContentsInCourse
+  editMultipleContentsInCourse,
+  updateLessonWatched
 } = require("../controllers/courseController"); 
 
 const {
@@ -60,10 +61,10 @@ router
     authorizePermissions("lecturer"),
     deleteCourse
   )
-  .post("/courses/:courseId/quizzes", addQuizToCourse)
-  .post("/courses/:courseId/quizzes/:quizId/submit", submitQuizAnswers)
-  .put("/:courseId/quizzes/:quizId", editQuiz)    
-  .delete("/:courseId/quizzes/:quizId", deleteQuiz) 
-  .patch("/:courseId/quizzes/:quizId/publish", publishQuiz);
+  .post("/courses/:courseId/quizzes", authenticateUser, addQuizToCourse)
+  .post("/courses/:courseId/quizzes/:quizId/submit", authenticateUser, submitQuizAnswers)
+  .put("/:courseId/quizzes/:quizId", authenticateUser, editQuiz)    
+  .delete("/:courseId/quizzes/:quizId", authenticateUser, deleteQuiz) 
+  .patch("/:courseId/quizzes/:quizId/publish", authenticateUser, publishQuiz)
 
 module.exports = router;

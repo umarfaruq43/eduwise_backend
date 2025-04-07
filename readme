@@ -1013,7 +1013,7 @@ result: {
 
 ///////////// New APIS
 
-1. POST /api/admin/create-admin
+1. POST /api/create-admin
 
 payload: {
     "name": "New Admin",
@@ -1067,3 +1067,7 @@ result: {
       totalUsers: 10, // Number all users fetched
       users: users list,
 }
+
+5. PATCH /api/courses/:courseId/sections/:sectionId/lessons/:lessonId/watched
+Note: No additional data is required
+result: {course details} // the course information will be returned.

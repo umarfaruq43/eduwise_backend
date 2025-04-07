@@ -448,8 +448,6 @@ const getUserCourseProgress = async (req, res) => {
 };
 
 
-
-
 const markLessonWatched = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -501,43 +499,77 @@ const markLessonWatched = async (req, res) => {
     }
 
     lesson.watched = true;
+    lesson.watchedAt = new Date();
 
-    const sectionWatchedCount = section.lessons.filter(
+    // Key change: Use findOneAndUpdate to update the document directly
+    await User.findOneAndUpdate(
+      {
+        _id: userId,
+        "progress.courseId": courseId,
+        "progress.sections.sectionTitle": sectionTitle,
+        "progress.sections.lessons.lessonTitle": lessonTitle,
+      },
+      {
+        $set: {
+          "progress.$[course].sections.$[section].lessons.$[lesson].watched": true,
+          "progress.$[course].sections.$[section].lessons.$[lesson].watchedAt": new Date(),
+        },
+      },
+      {
+        arrayFilters: [
+          { "course.courseId": courseId },
+          { "section.sectionTitle": sectionTitle },
+          { "lesson.lessonTitle": lessonTitle },
+        ],
+        new: true, // Return the updated document
+      }
+    );
+
+    const updatedUser = await User.findById(userId); //refetch the user to calculate the updated progress.
+
+    const updatedCourseProgress = updatedUser.progress.find(
+      (progress) => progress.courseId.toString() === courseId
+    );
+
+    const updatedSection = updatedCourseProgress.sections.find(
+      (sec) => sec.sectionTitle === sectionTitle
+    );
+
+    const sectionWatchedCount = updatedSection.lessons.filter(
       (les) => les.watched
     ).length;
-    const sectionTotalLessons = section.lessons.length;
+    const sectionTotalLessons = updatedSection.lessons.length;
 
-    const courseWatchedCount = courseProgress.sections.reduce(
+    const courseWatchedCount = updatedCourseProgress.sections.reduce(
       (total, sec) => total + sec.lessons.filter((les) => les.watched).length,
       0
     );
-    const courseTotalLessons = courseProgress.sections.reduce(
+    const courseTotalLessons = updatedCourseProgress.sections.reduce(
       (total, sec) => total + sec.lessons.length,
       0
     );
 
-    const allLessonsWatched = courseProgress.sections.every((sec) =>
+    const allLessonsWatched = updatedCourseProgress.sections.every((sec) =>
       sec.lessons.every((les) => les.watched)
     );
 
-    courseProgress.status = allLessonsWatched ? "completed" : "active";
+    updatedCourseProgress.status = allLessonsWatched ? "completed" : "active";
 
-    await user.save();
+    await updatedUser.save();
 
     res.status(200).json({
       status: "success",
       message: "Lesson marked as watched",
-      sectionNumber:
-        courseProgress.sections.findIndex(
+      sectionNumber: updatedCourseProgress.sections.findIndex(
           (sec) => sec.sectionTitle === sectionTitle
-        ) + 1, 
-      sectionTitle: section.sectionTitle,
+        ) + 1,
+      sectionTitle: updatedSection.sectionTitle,
       lessonTitle: lesson.lessonTitle,
       sectionWatchedCount,
       sectionTotalLessons,
       courseWatchedCount,
       courseTotalLessons,
-      courseStatus: courseProgress.status,
+      courseStatus: updatedCourseProgress.status,
     });
   } catch (error) {
     console.error(error);

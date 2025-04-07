@@ -214,6 +214,10 @@ const login = async (req, res) => {
       return res.status(400).json({ error: "Email or password incorrect" });
     }
 
+    if (!user.isActive) {
+      return res.status(403).json({ error: "Account is deactivated. Please contact support." }); 
+    }
+
     const isMatch = await user.comparePassword(password);
     
     if (!isMatch) {

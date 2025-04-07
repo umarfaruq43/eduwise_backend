@@ -19,7 +19,7 @@ const getSingleCourse = async (req, res) => {
 
 const getAllCourses = async (req, res) => {
   try {
-    const allCourses = await Course.find({});
+    const allCourses = await Course.find({}).sort({ createdAt: -1 }); // Sort by createdAt in descending order
 
     if (allCourses.length === 0) {
       return res.status(404).json({ message: "No courses found" });
@@ -43,7 +43,7 @@ const getLecturerCourses = async (req, res) => {
     }
 
     const lecturerId = req.user.userId; // Get lecturer's ID from authenticated user
-    const courses = await Course.find({ lecturer: lecturerId });
+    const courses = await Course.find({ lecturer: lecturerId }).sort({ createdAt: -1 });
 
     res.status(200).json({
       status: "success",
@@ -475,7 +475,6 @@ const publishQuiz = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 
 
 

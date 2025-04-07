@@ -42,6 +42,8 @@ const CourseSchema = new mongoose.Schema(
               required: true,
             },
             duration: { type: Number, required: true },
+            watched: { type: Boolean, default: false }, 
+            watchedAt: { type: Date },
           },
         ],
       },

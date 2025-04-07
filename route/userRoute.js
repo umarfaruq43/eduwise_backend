@@ -44,9 +44,9 @@ router
     authenticateUser,
     markLessonWatched
   )
-  .get("/users", authorizePermissions("super_admin" | "admin"), getAllUsers)
+  .get("/users", authenticateUser, authorizePermissions("super_admin", "admin"), getAllUsers)
   .get("/courses/:courseId/progress", authenticateUser, getUserCourseProgress)
-  .post("/create-admin", authorizePermissions("super_admin"), createAdmin)
-  .patch("/users/:id/toggle-status", authorizePermissions("super_admin" | "admin"), toggleUserStatus);
+  .post("/create-admin", authenticateUser, authorizePermissions("super_admin"), createAdmin)
+  .patch("/users/:id/toggle-status", authenticateUser, authorizePermissions("super_admin", "admin"), toggleUserStatus);
 
 module.exports = router;

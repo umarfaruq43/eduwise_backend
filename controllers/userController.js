@@ -637,6 +637,51 @@ const toggleUserStatus = async (req, res) => {
   }
 };
 
+const getCoursesByUser = async (req, res) => {
+  try {
+    const userId = req.user.userId; 
+
+    const user = await User.findById(userId).populate('enrolledCourses');
+
+    if (!user) {
+      return res.status(404).json({ status: 'error', message: 'User not found' });
+    }
+
+    if (!user.enrolledCourses || user.enrolledCourses.length === 0) {
+      return res.status(200).json({ status: 'success', message: 'User has no enrolled courses', courses: [] });
+    }
+
+    res.status(200).json({ status: 'success', courses: user.enrolledCourses });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+const getCourseByUser = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { courseId } = req.params;
+
+    const user = await User.findById(userId).populate('enrolledCourses');
+
+    if (!user) {
+      return res.status(404).json({ status: 'error', message: 'User not found' });
+    }
+
+    const course = user.enrolledCourses.find(course => course._id.toString() === courseId);
+
+    if (!course) {
+      return res.status(404).json({ status: 'error', message: 'Course not found in user\'s enrolled courses' });
+    }
+
+    res.status(200).json({ status: 'success', course });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
 module.exports = {
   getUserCount,
   enrollUser,
@@ -649,5 +694,7 @@ module.exports = {
   suggestJobsBasedOnInterests,
   createAdmin,
   toggleUserStatus,
-  getAllUsers
+  getAllUsers,
+  getCoursesByUser,
+  getCourseByUser
 };

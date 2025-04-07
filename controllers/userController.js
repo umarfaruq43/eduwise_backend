@@ -639,7 +639,7 @@ const toggleUserStatus = async (req, res) => {
 
 const getCoursesByUser = async (req, res) => {
   try {
-    const userId = req.user.userId; 
+    const userId = req.user.userId;
 
     const user = await User.findById(userId).populate('enrolledCourses');
 
@@ -648,10 +648,48 @@ const getCoursesByUser = async (req, res) => {
     }
 
     if (!user.enrolledCourses || user.enrolledCourses.length === 0) {
-      return res.status(200).json({ status: 'success', message: 'User has no enrolled courses', courses: [] });
+      return res.status(200).json({
+        status: 'success',
+        message: 'User has no enrolled courses',
+        courses: [],
+      });
     }
 
-    res.status(200).json({ status: 'success', courses: user.enrolledCourses });
+    // Merge progress into each course
+    const updatedCourses = user.enrolledCourses.map(course => {
+      const courseId = course._id.toString();
+      const courseProgress = user.progress.find(p => p.courseId.toString() === courseId);
+
+      const updatedContents = course.contents.map(section => {
+        const sectionProgress = courseProgress?.sections.find(
+          sp => sp.sectionTitle === section.sectionTitle
+        );
+
+        const updatedLessons = section.lessons.map(lesson => {
+          const lessonProgress = sectionProgress?.lessons.find(
+            lp => lp.lessonTitle === lesson.lessonTitle
+          );
+
+          return {
+            ...lesson._doc,
+            watched: lessonProgress?.watched || false,
+            watchedAt: lessonProgress?.watchedAt || null,
+          };
+        });
+
+        return {
+          ...section._doc,
+          lessons: updatedLessons,
+        };
+      });
+
+      return {
+        ...course._doc,
+        contents: updatedContents,
+      };
+    });
+
+    res.status(200).json({ status: 'success', courses: updatedCourses });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 'error', message: 'Internal Server Error' });
@@ -672,10 +710,51 @@ const getCourseByUser = async (req, res) => {
     const course = user.enrolledCourses.find(course => course._id.toString() === courseId);
 
     if (!course) {
-      return res.status(404).json({ status: 'error', message: 'Course not found in user\'s enrolled courses' });
+      return res.status(404).json({
+        status: 'error',
+        message: "Course not found in user's enrolled courses",
+      });
+    }
+
+    // Get the user's progress for this course
+    const courseProgress = user.progress.find(p => p.courseId.toString() === courseId);
+
+    if (courseProgress) {
+      course.contents.forEach(section => {
+        const sectionProgress = courseProgress.sections.find(sp => sp.sectionTitle === section.sectionTitle);
+
+        if (sectionProgress) {
+          section.lessons = section.lessons.map(lesson => {
+            const lessonProgress = sectionProgress.lessons.find(lp => lp.lessonTitle === lesson.lessonTitle);
+
+            return {
+              ...lesson._doc,
+              watched: lessonProgress?.watched || false,
+              watchedAt: lessonProgress?.watchedAt || null,
+            };
+          });
+        } else {
+          // If no progress for section, default lessons to not watched
+          section.lessons = section.lessons.map(lesson => ({
+            ...lesson._doc,
+            watched: false,
+            watchedAt: null,
+          }));
+        }
+      });
+    } else {
+      // No progress at all — default all lessons to not watched
+      course.contents.forEach(section => {
+        section.lessons = section.lessons.map(lesson => ({
+          ...lesson._doc,
+          watched: false,
+          watchedAt: null,
+        }));
+      });
     }
 
     res.status(200).json({ status: 'success', course });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 'error', message: 'Internal Server Error' });

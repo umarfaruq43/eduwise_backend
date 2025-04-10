@@ -4,6 +4,7 @@ const Job = require("../models/JobModel");
 const bcrypt = require("bcryptjs");
 const cloudinary = require("cloudinary").v2;
 const fs = require("fs");
+const { log } = require("console");
 
 const getUserCount = async (req, res) => {
   try {
@@ -641,7 +642,7 @@ const getCoursesByUser = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    const user = await User.findById(userId).populate('enrolledCourses');
+    const user = await User.findById(userId).populate('enrolledCourses').populate('lecturer');
 
     if (!user) {
       return res.status(404).json({ status: 'error', message: 'User not found' });
@@ -683,9 +684,20 @@ const getCoursesByUser = async (req, res) => {
         };
       });
 
+      const userQuizzes = courseProgress?.quizzes || [];
+      const updatedQuizzes = course.quizzes.map(quiz => {
+        const userQuizData = userQuizzes.find(uq => uq.quizId?.toString() === quiz._id.toString());
+        return {
+          ...quiz._doc, 
+          score: userQuizData?.score || 0,
+          attempts: userQuizData?.attempts || 0,
+        };
+      });
+
       return {
         ...course._doc,
         contents: updatedContents,
+        quizzes: updatedQuizzes,
       };
     });
 
@@ -701,13 +713,13 @@ const getCourseByUser = async (req, res) => {
     const userId = req.user.userId;
     const { courseId } = req.params;
 
-    const user = await User.findById(userId).populate('enrolledCourses');
+    const user = await User.findById(userId).populate('enrolledCourses').populate('lecturer');
 
     if (!user) {
       return res.status(404).json({ status: 'error', message: 'User not found' });
     }
 
-    const course = user.enrolledCourses.find(course => course._id.toString() === courseId);
+    const course = user.enrolledCourses.find(c => c._id.toString() === courseId);
 
     if (!course) {
       return res.status(404).json({
@@ -720,37 +732,37 @@ const getCourseByUser = async (req, res) => {
     const courseProgress = user.progress.find(p => p.courseId.toString() === courseId);
 
     if (courseProgress) {
-      course.contents.forEach(section => {
+      // Merge lesson progress
+      course.contents = course.contents.map(section => {
         const sectionProgress = courseProgress.sections.find(sp => sp.sectionTitle === section.sectionTitle);
-
-        if (sectionProgress) {
-          section.lessons = section.lessons.map(lesson => {
-            const lessonProgress = sectionProgress.lessons.find(lp => lp.lessonTitle === lesson.lessonTitle);
-
-            return {
-              ...lesson._doc,
-              watched: lessonProgress?.watched || false,
-              watchedAt: lessonProgress?.watchedAt || null,
-            };
-          });
-        } else {
-          // If no progress for section, default lessons to not watched
-          section.lessons = section.lessons.map(lesson => ({
+        const updatedLessons = section.lessons.map(lesson => {
+          const lessonProgress = sectionProgress?.lessons.find(lp => lp.lessonTitle === lesson.lessonTitle);
+          return {
             ...lesson._doc,
-            watched: false,
-            watchedAt: null,
-          }));
-        }
+            watched: lessonProgress?.watched || false,
+            watchedAt: lessonProgress?.watchedAt || null,
+          };
+        });
+        return { ...section._doc, lessons: updatedLessons };
+      });
+
+      // Merge quiz progress
+      const userQuizzes = courseProgress.quizzes || [];
+      course.quizzes = course.quizzes.map(quiz => {
+        const userQuizData = userQuizzes.find(uq => uq.quizId?.toString() === quiz._id.toString());
+        return {
+          ...quiz._doc,
+          score: userQuizData?.score || 0,
+          attempts: userQuizData?.attempts || 0,
+        };
       });
     } else {
-      // No progress at all — default all lessons to not watched
-      course.contents.forEach(section => {
-        section.lessons = section.lessons.map(lesson => ({
-          ...lesson._doc,
-          watched: false,
-          watchedAt: null,
-        }));
-      });
+      // No progress at all - default all lessons and quizzes
+      course.contents = course.contents.map(section => ({
+        ...section._doc,
+        lessons: section.lessons.map(lesson => ({ ...lesson._doc, watched: false, watchedAt: null })),
+      }));
+      course.quizzes = course.quizzes.map(quiz => ({ ...quiz._doc, score: 0, attempts: 0 }));
     }
 
     res.status(200).json({ status: 'success', course });

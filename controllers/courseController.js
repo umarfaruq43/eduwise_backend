@@ -1,4 +1,6 @@
 const Course = require("../models/CourseModel");
+const User = require("../models/UserModel");
+
 const mongoose = require('mongoose')
 const { extractValidationErrors } = require("../utils/handleError");
 
@@ -19,7 +21,7 @@ const getSingleCourse = async (req, res) => {
 
 const getAllCourses = async (req, res) => {
   try {
-    const allCourses = await Course.find({}).sort({ createdAt: -1 }); // Sort by createdAt in descending order
+    const allCourses = await Course.find({}).populate('lecturer').sort({ createdAt: -1 }); // Sort by createdAt in descending order
 
     if (allCourses.length === 0) {
       return res.status(404).json({ message: "No courses found" });
@@ -284,7 +286,6 @@ const deleteCourse = async (req, res) => {
 
 
 // quiz
-
 const addQuizToCourse = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -333,7 +334,6 @@ const submitQuizAnswers = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
     const courseProgress = user.progress.find(
       (progress) => progress.courseId.toString() === courseId
     );
@@ -341,27 +341,28 @@ const submitQuizAnswers = async (req, res) => {
       return res.status(404).json({ message: 'Course not found in user progress' });
     }
 
-    const quiz = courseProgress.quizzes.find((q) => q._id.toString() === quizId);
-    if (!quiz) {
-      return res.status(404).json({ message: 'Quiz not found in user progress' });
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
     }
 
-    // Assuming quiz published is stored in the course model.
-    const course = await Course.findById(courseId);
-    const originalQuiz = course.quizzes.id(quizId);
+    const quiz = course.quizzes.id(quizId);
+    if (!quiz) {
+      return res.status(404).json({ message: 'Quiz not found in course' });
+    }
 
-    if (!originalQuiz.published) {
+    if (!quiz.published) {
       return res.status(400).json({ message: 'Quiz is not published yet' });
     }
 
-    if (answers.length !== originalQuiz.questions.length) {
+    if (answers.length !== quiz.questions.length) {
       return res.status(400).json({
-        message: `Answers count (${answers.length}) does not match questions count (${originalQuiz.questions.length}).`,
+        message: `Answers count (${answers.length}) does not match questions count (${quiz.questions.length}).`,
       });
     }
 
     let score = 0;
-    originalQuiz.questions.forEach((question, index) => {
+    quiz.questions.forEach((question, index) => {
       const selectedOption = answers[index];
       if (!selectedOption) return;
 
@@ -371,13 +372,23 @@ const submitQuizAnswers = async (req, res) => {
       }
     });
 
-    const percentage = Math.ceil((score / originalQuiz.questions.length) * 100);
+    const percentage = Math.ceil((score / quiz.questions.length) * 100);
 
-    // Compare with existing totalScore and update only if new score is higher
-    if (!quiz.totalScore || percentage > quiz.totalScore) {
-      quiz.totalScore = percentage;
+    // Update user quiz score and attempts 
+    const userQuiz = courseProgress.quizzes.find((q) => q.quizId.toString() === quizId);
+    if (userQuiz) {
+        if (!userQuiz.score || percentage > userQuiz.score) {
+          userQuiz.score = percentage;
+        }
+        userQuiz.attempts = userQuiz.attempts + 1;
+        userQuiz.quizId = quizId;
+    } else {
+        courseProgress.quizzes.push({
+            score: percentage,
+            attempts: 1,
+            quizId: quizId
+        });
     }
-    quiz.attempts = quiz.attempts + 1;
 
     await user.save();
 
